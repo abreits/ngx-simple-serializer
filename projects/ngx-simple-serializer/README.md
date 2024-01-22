@@ -1,24 +1,59 @@
-# NgxSimpleSerializer
+# ngx-simple-serializer
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.1.0.
+For the latest changes and the current version see the [Change log](./CHANGELOG.md).
 
-## Code scaffolding
+## example
 
-Run `ng generate component component-name --project ngx-simple-serializer` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project ngx-simple-serializer`.
-> Note: Don't forget to add `--project ngx-simple-serializer` or else it will be added to the default project in your `angular.json` file. 
+``` typescript
+@Serializable('DemoClass')
+class DemoClass {
+  property1 = 'value1';
+  property2 = 'value2';
+  concatProperties() {
+    return this.property1 + this.property2;
+  }
+}
 
-## Build
+const classInstance = new DemoClass();
+classinstance.property2 = '23';
 
-Run `ng build ngx-simple-serializer` to build the project. The build artifacts will be stored in the `dist/` directory.
+const serializedValue = serialize(classInstance);
+// you can now store serializedValue in e.g. localstorage, so it can be retrieved after a page refresh
 
-## Publishing
+// to restore the value you just do
+const restoredInstance = deserialize(serializedValue);
+expect(restoredInstance.concatProperties()).toEqual('value123')
+```
 
-After building your library with `ng build ngx-simple-serializer`, go to the dist folder `cd dist/ngx-simple-serializer` and run `npm publish`.
+## documentation
 
-## Running unit tests
+Simple serialization and deserialization support for Classes in Angular with a minimum of boilerplate code.
+Serializable classes need only be decoratied with the `@Serializable()` decorator.
 
-Run `ng test ngx-simple-serializer` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Because of its simplicity it has a number of limitations:
+- It can only serialize and deserialize objects that succesfully `JSON.stringify()`, so no circular references are allowed.
+- To circumvent class name mangling/minimization problems you can add a serialization name to the decorator: `@Serializable('ClassName')`
+- Only works when class property names are not mangled/minimized in the build when you change code (should not be a problem with default settings).
+- It correctly serializes and deserializes the javascript `Map`, `Set`, `Date` and `RegExp` types
+- It needs a reserved property name to identify @Serializable classes in the serialized JSON. This reserved property name defaults to `_class`. 
 
-## Further help
+It contains the following elements:
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+- `@Serializable(name?: string)` Decorator that marks a Class as serializable.
+- `serialize(value: any): string` Function that serializes a value into a JSON string.
+- `deserialize(value: string): any` Function that deserializes a serialized value back to its original value.
+- `isSerializable(value): boolean` Function that determines if a value is a basic serializable value type or decorated as `@Serializable()`.
+- `setSerializeId(id: string)` Change the default `_class` reserved property to a custom name.
+
+It can serialize and deserialize the following javascript value types:
+
+- `boolean`
+- `number`
+- `string`
+- `Array`
+- `Object`
+- `Map`
+- `Set`
+- `Date`
+- `RegExp`
+- Any `class` decorated as `@Serializable()` that only contains serializable properties and does not contain circular references.

@@ -2,6 +2,7 @@ import { Type } from '@angular/core';
 
 const serializableClasses = new Map<string, Type<any>>();
 const serializedNameMap = new Map<string, string>();
+let _class = '_class';
 
 /**
  * Class decorator that registers the class as serializable under the specified name
@@ -16,6 +17,10 @@ export function Serializable(serializedName?: string) {
     serializedNameMap.set(serializedClass.name, serializedName);
     serializableClasses.set(serializedName, serializedClass);
   };
+}
+
+export function setSerializeId(name: string) {
+  _class = name;
 }
 
 /**
@@ -83,19 +88,19 @@ function replacer(key: string, value: any): any {
       case String: return value;
       case Object: return value;
       case Array: return value;
-      case Map: return { _class: 'Map', _value: [...value] };
-      case Set: return { _class: 'Set', _value: [...value] };
-      case Date: return { _class: 'Date', _value: value.getTime() };
-      case RegExp: return { _class: 'RegExp', _value: { source: value.source, flags: value.flags } };
+      case Map: return { [_class]: 'Map', _value: [...value] };
+      case Set: return { [_class]: 'Set', _value: [...value] };
+      case Date: return { [_class]: 'Date', _value: value.getTime() };
+      case RegExp: return { [_class]: 'RegExp', _value: { source: value.source, flags: value.flags } };
       default: {
         const className = serializedNameMap.get(value.constructor.name);
         if (!className) {
           throw (new Error(`Error in serialize: class '${value.constructor.name}' not decorated as @Serializable()`));
         }
         if (value[SerializeSymbol]) {
-          return { _class: className, _value: value[SerializeSymbol]() };
+          return { [_class]: className, _value: value[SerializeSymbol]() };
         } else {
-          return { _class: className, _value: value };
+          return { [_class]: className, _value: value };
         }
       }
     }
@@ -106,14 +111,14 @@ function replacer(key: string, value: any): any {
 // JSON parse reviver function
 function reviver(key: string, value: any): any {
   if (typeof value === 'object' && value !== null) {
-    switch (value._class) {
+    switch (value[_class]) {
       case 'Map': return new Map(value._value);
       case 'Set': return new Set(value._value);
       case 'Date': return new Date(value._value);
       case 'RegExp': return new RegExp(value._value.source, value._value.flags);
       default:
-        if (value._class) {
-          const persistedClass = serializableClasses.get(value._class);
+        if (value[_class]) {
+          const persistedClass = serializableClasses.get(value[_class]);
           if (persistedClass) {
             if (persistedClass.prototype[DeserializeSymbol]) {
               return persistedClass.prototype[DeserializeSymbol](value._value);
@@ -122,7 +127,7 @@ function reviver(key: string, value: any): any {
               return Object.create(persistedClass.prototype, objectProperties);
             }
           } else {
-            throw (new Error(`Error in deserialize: '${value._class}' not decorated as @Serializable()`));
+            throw (new Error(`Error in deserialize: '${value[_class]}' not decorated as @Serializable()`));
           }
         }
     }
