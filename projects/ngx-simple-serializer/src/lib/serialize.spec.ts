@@ -1,5 +1,5 @@
 // import { LocalPersist } from './persist';
-import { serialize, deserialize, Serializable, CustomSerializer, SerializeSymbol, DeserializeSymbol, isSerializable, setSerializeId } from './serialize';
+import { serialize, deserialize, Serializable, CustomSerializer, SerializeSymbol, DeserializeSymbol, isSerializable, setSerializedClassIdentifier } from './serialize';
 
 // *************************************************************************************
 // ** Testing if the serialization works
@@ -153,7 +153,7 @@ describe('isSerializable', () => {
 describe('setSerializeId', () => {
   it('should serialize and deserialize using a custom id', () => {
     const customId = '__custom_id__';
-    setSerializeId(customId);
+    setSerializedClassIdentifier(customId);
 
     const testValue = new TestSerializeClass1();
     const serializedValue = serialize(testValue);
@@ -163,6 +163,6 @@ describe('setSerializeId', () => {
     expect(deserialize(serializedValue)).toEqual(testValue);
 
     // change back to default so othert tests keep working
-    setSerializeId('_class');
+    setSerializedClassIdentifier('_class');
   });
 });

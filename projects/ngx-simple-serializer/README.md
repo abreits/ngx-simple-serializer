@@ -41,11 +41,11 @@ It contains the following elements:
 
 - `@Serializable(name?: string)` Decorator that marks a Class as serializable.
 - `serialize(value: any): string` Function that serializes a value into a JSON string.
-- `deserialize(value: string): any` Function that deserializes a serialized value back to its original value.
+- `deserialize<T = any>(value: string): T` Function that deserializes a serialized value back to its original value.
 - `isSerializable(value): boolean` Function that determines if a value is a basic serializable value type or decorated as `@Serializable()`.
-- `setSerializeId(id: string)` Change the default `_class` reserved property to a custom name.
+- `setSerializedClassIdentifier(id: string)` Change the default `_class` reserved property name that identifies a @Serializable class to a different name (e.g. because the `_class` property is used as a normal property inside a serializable object or class).
 
-It can serialize and deserialize the following javascript value types:
+By default it serializes and deserializes the following javascript value types:
 
 - `boolean`
 - `number`

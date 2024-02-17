@@ -19,7 +19,12 @@ export function Serializable(serializedName?: string) {
   };
 }
 
-export function setSerializeId(name: string) {
+/**
+ * Change the default `_class` reserved property name that identifies a `@Serializable` class to a different name.
+ * 
+ * For example because the `_class` property is used as a normal property inside a serializable object or class.
+ */
+export function setSerializedClassIdentifier(name: string) {
   _class = name;
 }
 
@@ -73,7 +78,7 @@ export function serialize(value: any): string {
  * @param value a JSON string created with `serialize`
  * @returns the original value
  */
-export function deserialize(value: string): any {
+export function deserialize<T=any>(value: string): T {
   return JSON.parse(value, reviver);
 }
 
